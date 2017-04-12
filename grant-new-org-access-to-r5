@@ -1,0 +1,58 @@
+--
+--Stored Procedure uspGrantUserAccessToOrg
+--
+
+create procedure [dbo].[uspGrantUserAccessToOrg] (
+@usrcod nvarchar(30),
+@grpcod nvarchar(30),
+@orgcod nvarchar(30)
+) as
+begin
+declare @dupcnt int;
+select @dupcnt=count(1) from R5USERORGANIZATION where UOG_USER=@usrcod and UOG_ORG=@orgcod;
+if @dupcnt=0
+insert into R5USERORGANIZATION
+(
+UOG_USER,
+UOG_ORG,
+UOG_DEFAULT,
+UOG_COMMON,
+UOG_GROUP,
+UOG_REQAPPVLIMIT,
+UOG_REQAUTHAPPVLIMIT,
+UOG_PORDAPPVLIMIT,
+UOG_PORDAUTHAPPVLIMIT,
+UOG_PICAPPVLIMIT,
+UOG_INVAPPVLIMIT,
+UOG_INVAPPVLIMITNONPO,
+UOG_UPDATECOUNT,
+UOG_CREATED,
+UOG_UPDATED
+)
+values (
+@usrcod,
+@orgcod,
+'-',
+'-',
+@grpcod,
+NULL,
+50000,
+NULL,
+NULL,
+NULL,
+NULL,
+NULL,
+0,
+GETDATE(),
+GETDATE()
+);
+end;
+GO
+
+--
+--Flex - r5organization - PostInsert
+--
+
+declare @orgcode nvarchar(30);
+select @orgcode=org_code from r5organization where org_sqlidentity=:rowid;
+exec dbo.uspGrantUserAccessToOrg 'R5', 'R5', @orgcode;
